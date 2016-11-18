@@ -77,8 +77,8 @@ bool Weather::GetCurrentWeather() {
 	//search all child for current observations
 	for (pugi::xml_node it = rootnode.first_child(); it; it = it.next_sibling()) {
 
-		if (strcmp(it.attribute("type").as_string(),"current observations") == 0) {
-						
+		if (strcmp(it.attribute("type").as_string(), "current observations") == 0) {
+
 			//read current temperature
 			ReadXmlChildValue(weather_data_.temperature, it.child("parameters").child("temperature").child("value"));
 
@@ -91,7 +91,35 @@ bool Weather::GetCurrentWeather() {
 			ReadXmlChildValue(weather_data_.wind_speed, it.child("parameters")
 				.child("wind-speed").next_sibling().child("value"));
 
+			//done reading
 			break;
+		}
+	}
+
+	return true;
+}
+
+bool Weather::GetForecastWeather()
+{
+	//this is the top level node
+	pugi::xml_node rootnode = xmldoc_.child("dwml");
+
+	//search all child for forecast
+	for (pugi::xml_node it = rootnode.first_child(); it; it = it.next_sibling()) {
+
+		if (strcmp(it.attribute("type").as_string(), "forecast") == 0) {
+
+			//search for max and min temperature from identical <temperature> tag
+			for (pugi::xml_node it2 = it.child("parameters").child("temperature"); it2; it2 = it2.next_sibling())
+			{
+				//read the first value for min temp for the day
+				if (strcmp(it2.attribute("type").as_string(), "minimum") == 0)
+					ReadXmlChildValue(weather_data_.min_temperature, it2.child("value"));
+
+				//read the first value for max temp for the day
+				if (strcmp(it2.attribute("type").as_string(), "maximum") == 0)
+					ReadXmlChildValue(weather_data_.max_temperature, it2.child("value"));
+			}
 		}
 	}
 
@@ -101,5 +129,7 @@ bool Weather::GetCurrentWeather() {
 bool Weather::PrintCurrentWeather() {
 	std::cout << weather_data_.temperature << std::endl
 		<< weather_data_.weather_conditions << std::endl
-		<< weather_data_.wind_speed << std::endl;
+		<< weather_data_.wind_speed << std::endl
+		<< weather_data_.min_temperature << std::endl
+		<< weather_data_.max_temperature << std::endl;
 }

@@ -35,9 +35,14 @@ template< typename T > inline bool ReadXmlChildValue(T& vars, pugi::xml_node nod
 }
 
 struct WeatherDataStruct{
+	//current
     float temperature;
     std::string weather_conditions;
     float wind_speed;
+
+	//daily variation
+	float max_temperature;
+	float min_temperature;
 };
 
 class Weather {
@@ -50,6 +55,7 @@ public:
     bool GetWeatherFromNatWeatherService();
     bool ParseXml();
     bool GetCurrentWeather();
+	bool GetForecastWeather();
 
     bool PrintCurrentWeather();
 
