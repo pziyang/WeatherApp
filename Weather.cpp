@@ -12,78 +12,60 @@
 #include "Weather.h"
 
 size_t AppendDataToStringCurlCallback(void *ptr, size_t size, size_t nmemb, void *vstring) {
-    std::string *pstring = (std::string *) vstring;
-    pstring->append((char *) ptr, size * nmemb);
-    return size * nmemb;
-}
-
-static size_t write_data(void *ptr, size_t size, size_t nmemb, void *stream)
-{
-    size_t written = fwrite(ptr, size, nmemb, (FILE *)stream);
-    return written;
+	std::string *pstring = (std::string *) vstring;
+	pstring->append((char *)ptr, size * nmemb);
+	return size * nmemb;
 }
 
 bool Weather::GetWeatherFromNatWeatherService() {
 
-    //curl variables
-    CURL *curl_handle;
-    CURLcode res;
+	CURL *curl_handle;
+	const std::string url_ann_arbor = "http://forecast.weather.gov/MapClick.php?textField1=42.28&textField2=-83.74&FcstType=dwml";
 
-    //debug
-    static const char *pagefilename = "page.out";
-    FILE* pagefile = fopen(pagefilename, "wb");
+	curl_global_init(CURL_GLOBAL_ALL);
 
-    //NatWeatherService URL for Ann Arbor
-    const std::string url_ann_arbor = "http://forecast.weather.gov/MapClick.php?textField1=42.28&textField2=-83.74&FcstType=dwml";
+	//init the curl session 
+	curl_handle = curl_easy_init();
 
-    std::cout << url_ann_arbor << std::endl;
+	//set URL to get here 
+	curl_easy_setopt(curl_handle, CURLOPT_URL, url_ann_arbor.c_str());
 
-    curl_handle = curl_easy_init();
-    if (curl_handle) {
+	//Switch on full protocol/debug output while testing 
+	curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, 0L);
 
-        //set URL and follow redirection
-        curl_easy_setopt(curl_handle, CURLOPT_URL, url_ann_arbor.c_str());
-        curl_easy_setopt(curl_handle, CURLOPT_FOLLOWLOCATION, 1L);
+	//disable progress meter, set to 0L to enable and disable debug output 
+	curl_easy_setopt(curl_handle, CURLOPT_NOPROGRESS, 0L);
 
-        //write to body
-        //curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, AppendDataToStringCurlCallback);
-        //curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, &body_);
-        curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, write_data);
-        curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, pagefile);
+	//set user agent 
+	curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, "Mozilla/5.0");
 
-        // Perform the request, res will get the return code
-        res = curl_easy_perform(curl_handle);
+	//write data to string 
+	curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, AppendDataToStringCurlCallback);
+	curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, &body_);
 
-        // Check for errors
-        if (res != CURLE_OK) {
-            //print error
-            fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
-        } else {
-            //get time which url is accessed
-            time(&last_retrieved_);
-        }
+	//get it! 
+	curl_easy_perform(curl_handle);
 
-        //clean up
-        curl_easy_cleanup(curl_handle);
-    }
+	//cleanup curl stuff 
+	curl_easy_cleanup(curl_handle);
 
-    return true;
+	return true;
 }
 
 bool Weather::ParseXml() {
 
-    std::cout << body_ << std::endl;
+	//load string into XML DOM
+	pugi::xml_parse_result result = xmldoc_.load(body_.c_str());
 
-    pugi::xml_parse_result result = xmldoc_.load(body_.c_str());
+	if (result) {
+		std::cout << "XML parsed without errors" << std::endl;
+	}
+	else {
+		std::cout << "XML parsed with errors" << std::endl;
+		std::cout << "Error description: " << result.description() << "\n";
+	}
 
-    if (result) {
-        std::cout << "XML parsed without errors" << std::endl;
-    } else {
-        std::cout << "XML parsed with errors" << std::endl;
-        std::cout << "Error description: " << result.description() << "\n";
-    }
-
-    return true;
+	return true;
 }
 
 bool Weather::GetCurrentWeather() {
