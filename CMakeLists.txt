@@ -1,4 +1,8 @@
+cmake_minimum_required(VERSION 2.8)
+
 project(Weather)
+
+add_compile_options(-std=c++11)
 
 #-------------------------------------------------------------------------------
 # Add CURL
