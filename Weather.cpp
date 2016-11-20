@@ -5,7 +5,7 @@
 #include <string>
 #include <cstring>
 #include <sstream>
-#include <curl.h>
+#include <curl/curl.h>
 #include "pugixml.hpp"
 
 
@@ -71,6 +71,9 @@ bool Weather::ParseXml() {
 
 bool Weather::GetCurrentWeather() {
 
+	//lock mutex for updating
+	mlock_.lock();
+
 	//this is the top level node
 	pugi::xml_node rootnode = xmldoc_.child("dwml");
 
@@ -96,11 +99,17 @@ bool Weather::GetCurrentWeather() {
 		}
 	}
 
+	//unlock mutex for updating
+	mlock_.unlock();
+
 	return true;
 }
 
 bool Weather::GetForecastWeather()
 {
+	//lock mutex for updating
+	mlock_.lock();
+
 	//this is the top level node
 	pugi::xml_node rootnode = xmldoc_.child("dwml");
 
@@ -122,6 +131,9 @@ bool Weather::GetForecastWeather()
 			}
 		}
 	}
+
+	//unlock mutex for updating
+	mlock_.unlock();
 
 	return true;
 }

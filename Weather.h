@@ -8,6 +8,8 @@
 #include <string>
 #include <sstream>
 #include <time.h>
+#include <mutex>
+
 #include "pugixml.hpp"
 
 template< typename T > inline bool ReadXmlChildValue(T& vars, pugi::xml_node node)
@@ -47,10 +49,15 @@ struct WeatherDataStruct{
 
 class Weather {
 private:
-    std::string body_;
-    pugi::xml_document xmldoc_;
-    time_t last_retrieved_;
-    WeatherDataStruct weather_data_;
+
+    std::string body_;					//! string to store data retrived from NWS website
+    pugi::xml_document xmldoc_;			//! pugixml object to load xml from string
+	WeatherDataStruct weather_data_;	//! weather information for use
+
+	//threading stuff
+    time_t last_retrieved_;				//! time [s] for last successful completion of ParseXml()
+	std::mutex mlock_;					//! mutex for weather_data_
+    
 public:
     bool GetWeatherFromNatWeatherService();
     bool ParseXml();
