@@ -1,14 +1,16 @@
-#include <iostream>
-
 #include "Weather.h"
+#include <unistd.h>
 
 int main() {
+
     Weather weather;
 
-    weather.GetWeatherFromNatWeatherService();
-    weather.ParseXml();
-    weather.GetCurrentWeather();
-    weather.PrintCurrentWeather();
+	weather.Start();
+
+	sleep(20);
+
+	weather.Stop();
 
     return 0;
 }
+

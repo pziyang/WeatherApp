@@ -12,6 +12,12 @@ set(CURL_INCLUDE_DIR "/usr/include/curl")
 include_directories(${CURL_INCLUDE_DIR})
 
 #-------------------------------------------------------------------------------
+# Add Threads
+#-------------------------------------------------------------------------------
+set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
+set(THREADS_PREFER_PTHREAD_FLAG TRUE)
+
+#-------------------------------------------------------------------------------
 # Add PugiXML
 #-------------------------------------------------------------------------------
 # set PugiXML directory
@@ -34,5 +40,6 @@ set(SOURCE_FILES main.cpp Weather.cpp Weather.h)
 add_executable(Weather ${SOURCE_FILES})
 
 #linking
-target_link_libraries(Weather -lcurl)
+target_link_libraries(Weather curl)
+target_link_libraries(Weather -pthread)
 target_link_libraries(Weather pugixml)

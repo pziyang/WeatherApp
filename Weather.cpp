@@ -5,9 +5,10 @@
 #include <string>
 #include <cstring>
 #include <sstream>
+#include <chrono>
+#include <unistd.h>
 #include <curl/curl.h>
 #include "pugixml.hpp"
-
 
 #include "Weather.h"
 
@@ -15,6 +16,34 @@ size_t AppendDataToStringCurlCallback(void *ptr, size_t size, size_t nmemb, void
 	std::string *pstring = (std::string *) vstring;
 	pstring->append((char *)ptr, size * nmemb);
 	return size * nmemb;
+}
+
+bool Weather::Start() {
+
+	//print
+	std::cout << "Starting Weather thread" << std::endl;
+
+	//start threads
+	thread_ = std::thread(&Weather::RunThread, this);
+
+	//set flag to true;
+	thread_running_ = true;
+
+	return true;
+}
+
+bool Weather::Stop() {
+
+	//print
+	std::cout << "Stopping Weather thread" << std::endl;
+
+	//stop threads
+	thread_running_ = false;
+
+	//wait for clean up
+	sleep(10);
+
+	return true;
 }
 
 bool Weather::GetWeatherFromNatWeatherService() {
@@ -44,7 +73,18 @@ bool Weather::GetWeatherFromNatWeatherService() {
 	curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, &body_);
 
 	//get it! 
-	curl_easy_perform(curl_handle);
+	CURLcode code = curl_easy_perform(curl_handle);
+
+	//check and return false if there are errors
+	if (code != CURLE_OK)
+	{
+		std::cout << "Failed to run curl " << code << std::endl;
+
+		return false;
+	}
+
+	//update time
+	time(&last_retrieved_);
 
 	//cleanup curl stuff 
 	curl_easy_cleanup(curl_handle);
@@ -59,11 +99,20 @@ bool Weather::ParseXml() {
 
 	//check if there are errors
 	if (result) {
+
+		//set last_retrieved_
+		time(&last_retrieved_);
+
+		//print success
 		std::cout << "XML parsed without errors" << std::endl;
 	}
 	else {
+
+		//print error message if there are pasrsing errors
 		std::cout << "XML parsed with errors" << std::endl;
 		std::cout << "Error description: " << result.description() << "\n";
+
+		return false;
 	}
 
 	return true;
@@ -139,9 +188,30 @@ bool Weather::GetForecastWeather()
 }
 
 bool Weather::PrintCurrentWeather() {
-	std::cout << weather_data_.temperature << std::endl
-		<< weather_data_.weather_conditions << std::endl
-		<< weather_data_.wind_speed << std::endl
-		<< weather_data_.min_temperature << std::endl
-		<< weather_data_.max_temperature << std::endl;
+	std::cout << "Last Retrieved: " << last_retrieved_ << std::endl
+		<< "Current Temperature: " << weather_data_.temperature << std::endl
+		<< "Weather Conditions: " << weather_data_.weather_conditions << std::endl
+		<< "Wind Speed: " << weather_data_.wind_speed << std::endl
+		<< "Min Temperature: " << weather_data_.min_temperature << std::endl
+		<< "Max Temperature: " << weather_data_.max_temperature << std::endl << std::endl;
+}
+
+void Weather::RunThread() {
+
+	if (thread_running_)
+	{
+		//sleep for defined interval
+		std::this_thread::sleep_for(std::chrono::seconds(update_interval_seconds_));
+
+		//retrieve weather
+		GetWeatherFromNatWeatherService();
+		ParseXml();
+		GetForecastWeather();
+		GetCurrentWeather();
+		PrintCurrentWeather();
+	}
+	else
+	{
+		return;
+	}	
 }

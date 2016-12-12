@@ -9,6 +9,7 @@
 #include <sstream>
 #include <time.h>
 #include <mutex>
+#include <thread>
 
 #include "pugixml.hpp"
 
@@ -50,6 +51,9 @@ struct WeatherDataStruct{
 class Weather {
 private:
 
+	//settings
+	const int update_interval_seconds_ = 5;		//! interval in seconds to retrieve data from website
+
     std::string body_;					//! string to store data retrived from NWS website
     pugi::xml_document xmldoc_;			//! pugixml object to load xml from string
 	WeatherDataStruct weather_data_;	//! weather information for use
@@ -57,15 +61,20 @@ private:
 	//threading stuff
     time_t last_retrieved_;				//! time [s] for last successful completion of ParseXml()
 	std::mutex mlock_;					//! mutex for weather_data_
+	bool thread_running_ = false;		//! flag to indicate if thread is started
+	std::thread thread_;				//! main update function is executed as thread
     
-public:
+	//functions
     bool GetWeatherFromNatWeatherService();
     bool ParseXml();
     bool GetCurrentWeather();
 	bool GetForecastWeather();
-
     bool PrintCurrentWeather();
+	void RunThread();
 
+public:
+	bool Start();
+	bool Stop();
 };
 
 
