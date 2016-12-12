@@ -18,34 +18,6 @@ size_t AppendDataToStringCurlCallback(void *ptr, size_t size, size_t nmemb, void
 	return size * nmemb;
 }
 
-bool Weather::Start() {
-
-	//print
-	std::cout << "Starting Weather thread" << std::endl;
-
-	//start threads
-	thread_ = std::thread(&Weather::RunThread, this);
-
-	//set flag to true;
-	thread_running_ = true;
-
-	return true;
-}
-
-bool Weather::Stop() {
-
-	//print
-	std::cout << "Stopping Weather thread" << std::endl;
-
-	//stop threads
-	thread_running_ = false;
-
-	//wait for clean up
-	sleep(10);
-
-	return true;
-}
-
 bool Weather::GetWeatherFromNatWeatherService() {
 
 	CURL *curl_handle;
@@ -198,7 +170,7 @@ bool Weather::PrintCurrentWeather() {
 
 void Weather::RunThread() {
 
-	if (thread_running_)
+	while (!stop_thread_)
 	{
 		//sleep for defined interval
 		std::this_thread::sleep_for(std::chrono::seconds(update_interval_seconds_));
@@ -210,8 +182,4 @@ void Weather::RunThread() {
 		GetCurrentWeather();
 		PrintCurrentWeather();
 	}
-	else
-	{
-		return;
-	}	
 }

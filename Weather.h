@@ -61,7 +61,7 @@ private:
 	//threading stuff
     time_t last_retrieved_;				//! time [s] for last successful completion of ParseXml()
 	std::mutex mlock_;					//! mutex for weather_data_
-	bool thread_running_ = false;		//! flag to indicate if thread is started
+	bool stop_thread_ = false;			//! flag to indicate if thread should be stopped
 	std::thread thread_;				//! main update function is executed as thread
     
 	//functions
@@ -73,9 +73,16 @@ private:
 	void RunThread();
 
 public:
-	bool Start();
-	bool Stop();
-};
 
+	Weather() : thread_() {}
+	~Weather() {
+		stop_thread_ = true;
+		if (thread_.joinable()) thread_.join();
+	}
+	
+	bool Start() {
+		thread_ = std::thread(&Weather::RunThread, this);
+	}
+};
 
 #endif //WEATHER_WEATHER_H

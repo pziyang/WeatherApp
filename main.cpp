@@ -7,9 +7,7 @@ int main() {
 
 	weather.Start();
 
-	sleep(20);
-
-	weather.Stop();
+	sleep(30);
 
     return 0;
 }
