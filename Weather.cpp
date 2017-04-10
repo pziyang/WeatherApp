@@ -12,6 +12,7 @@
 
 #include "Weather.h"
 
+
 size_t AppendDataToStringCurlCallback(void *ptr, size_t size, size_t nmemb, void *vstring) {
 	std::string *pstring = (std::string *) vstring;
 	pstring->append((char *)ptr, size * nmemb);
@@ -21,7 +22,6 @@ size_t AppendDataToStringCurlCallback(void *ptr, size_t size, size_t nmemb, void
 bool Weather::GetWeatherFromNatWeatherService() {
 
 	CURL *curl_handle;
-	const std::string url_ann_arbor = "http://forecast.weather.gov/MapClick.php?textField1=42.28&textField2=-83.74&FcstType=dwml";
 
 	curl_global_init(CURL_GLOBAL_ALL);
 
@@ -29,7 +29,7 @@ bool Weather::GetWeatherFromNatWeatherService() {
 	curl_handle = curl_easy_init();
 
 	//set URL to get here 
-	curl_easy_setopt(curl_handle, CURLOPT_URL, url_ann_arbor.c_str());
+	curl_easy_setopt(curl_handle, CURLOPT_URL, nws_url_.c_str());
 
 	//Switch on full protocol/debug output while testing 
 	curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, 0L);

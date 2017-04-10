@@ -53,6 +53,8 @@ private:
 
 	//settings
 	const int update_interval_seconds_ = 5;		//! interval in seconds to retrieve data from website
+	
+	const std::string nws_url_ = "http://forecast.weather.gov/MapClick.php?textField1=42.28&textField2=-83.74&FcstType=dwml"; //your url here
 
     std::string body_;					//! string to store data retrived from NWS website
     pugi::xml_document xmldoc_;			//! pugixml object to load xml from string
