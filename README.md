@@ -1,8 +1,8 @@
 ## C++ Weather Application ##
 
-This is a simple weather application written in c++. It connects to US National Weather Service (NWS) API and retrives the weather forecast in NDFD format. It then uses parses the xml for use.
+This is a simple weather application written in c++. It connects to US National Weather Service (NWS) API and retrives the weather forecast in NDFD format. It parses the xml for use.
 
-It is meant to run in a background thread. Therefore very useful for integrating into another code.
+It is meant to run in a background thread. Therefore, it very useful for integrating into another codes.
 
 I initially wrote this to run a weather update LED display on Rpi.
 
@@ -28,3 +28,5 @@ See Weather.h
 ### Example use ###
 See main.cpp
 
+### License ###
+GPLv3
